@@ -5,8 +5,10 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNull, LynxNumber}
 import org.grapheco.lynx.types.time.LynxDuration
+import org.grapheco.lynx.{ProcedureException, LynxNumber}
 
 import java.time.Duration
+import scala.math._
 
 /**
  * @ClassName AggregatingFunctions
@@ -276,4 +278,46 @@ class AggregatingFunctions {
   }
 
 
+}
+
+/**
+ * @ClassName StatisticalFunctions
+ * @Description Statistical functions to calculate k-th central moment and k-th raw moment.
+ * @ZSJ
+ * @Date 2024/12/22
+ * @Version 0.1
+ */
+class StatisticalFunctions {
+  /**
+   * Calculates the k-th central moment.
+   *
+   * @param inputs A list of numeric values.
+   * @param k      The order of the central moment.
+   * @return A Float representing the k-th central moment.
+   */
+  @LynxProcedure(name = "kthCentralMoment")
+  def kthCentralMoment(inputs: LynxList, k: LynxInteger): LynxFloat = {
+    val values = inputs.value.filterNot(LynxNull.equals).map(_.asInstanceOf[LynxNumber].number.toDouble)
+    if (values.isEmpty) LynxFloat(0) else {
+      val mean = values.sum / values.length
+      val centralMoment = values.map(x => pow(x - mean, k.number.toDouble)).sum / values.length
+      LynxFloat(centralMoment.toFloat)
+    }
+  }
+
+  /**
+   * Calculates the k-th raw moment.
+   *
+   * @param inputs A list of numeric values.
+   * @param k      The order of the raw moment.
+   * @return A Float representing the k-th raw moment.
+   */
+  @LynxProcedure(name = "kthRawMoment")
+  def kthRawMoment(inputs: LynxList, k: LynxInteger): LynxFloat = {
+    val values = inputs.value.filterNot(LynxNull.equals).map(_.asInstanceOf[LynxNumber].number.toDouble)
+    if (values.isEmpty) LynxFloat(0) else {
+      val rawMoment = values.map(x => pow(x, k.number.toDouble)).sum / values.length
+      LynxFloat(rawMoment.toFloat)
+    }
+  }
 }
